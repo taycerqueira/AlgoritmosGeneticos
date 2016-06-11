@@ -1,163 +1,117 @@
 package trabalho1;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 
 public class Main {
 	
-	public static int[][] populacao;
-	private static int tamPopulacaoIncial = 50;
+	private static final int tamCromossomo = 22;
+	private static final int tamPopulacaoIncial = 50;
 
 	public static void main(String[] args) {
 		
-		int cromossomo[] = new int[22];
-		gerarPopulacaoInicial(tamPopulacaoIncial);
-		int[][] populacaoIntermediaria = selecaoTorneio(28, tamPopulacaoIncial);
+		System.out.println(" ======= Algoritmo GenÈtico =======\n");
+		
+		ArrayList<Individuo> populacaoIncial = gerarPopulacaoInicial(tamPopulacaoIncial);
+		ArrayList<Individuo> populacaoIntermediaria = selecaoTorneio(populacaoIncial, 28);
 		cruzamento(populacaoIntermediaria, 0.7);
 
 	}
 	
-	private static double fitness(double x){
+	private static ArrayList<Individuo> gerarPopulacaoInicial(int quant){
 		
-		return (x*Math.sin(10*Math.PI*x) + 1);
+		System.out.println("=> Gerando populaÁ„o Inicial...\n");
 		
-	}
-	
-	private static double getReal(int x){
-		double real = 0;
-		
-		real = (-1.0) + x*(3/(Math.pow(2, 22) - 1));
-		
-		return real;
-	}
-	
-	private static int getDecimal(int[] binario){
-		
-		int decimal = 0;
-		
-		int bill = 21;
-		for(int i = 0; i < 22; i++){
-			decimal += (binario[i]*Math.pow(2, bill));
-			bill--;
-		}
-		
-		return decimal;
-		
-	}
-	
-	private static int[][] gerarPopulacaoInicial(int quant){
-		
+		ArrayList<Individuo> populacaoInicial = new ArrayList<Individuo>();
 		Random rand = new Random();
-		populacao = new int[quant][22];
-		//System.out.println("Gerando popula√ß√£o inicial...");
-		
 		for(int i = 0; i < quant; i++){
-			for(int j = 0; j < 22; j++){
+			int cromossomo[] = new int[tamCromossomo];
+			for(int j = 0; j < tamCromossomo; j++){
 				if(rand.nextBoolean()){
-					populacao[i][j] = 1;
+					cromossomo[j] = 1;
 				}
 				else{
-					populacao[i][j] = 0;
+					cromossomo[j] = 0;
 				}
-				//System.out.print(populacao[i][j] + " ");
 			}
-			//System.out.println("\r\n");
-			
+			System.out.println(Arrays.toString(cromossomo));
+			populacaoInicial.add(new Individuo(cromossomo));
 		}
 		
-		return populacao;
+		System.out.println("\n* Tamanho da populaÁ„o inicial: " + populacaoInicial.size());
+		return populacaoInicial;
 		
 	}
 	
-	private static int[][] selecaoTorneio(int tamPopulacaoInter, int tamPopulacaoInicial){
+	private static ArrayList<Individuo> selecaoTorneio(ArrayList<Individuo> populacao, int tamPopulacaoInter){
 		
-		Random rand = new Random();
-		int inter = 50;
-		boolean escolhidos[] = new boolean[tamPopulacaoInicial];
-		for(int i = 0; i < tamPopulacaoInicial; i++){
+		System.out.println("\n=> Realizando Torneio...\n");
+		
+		ArrayList<Individuo> populacaoIntermediaria = new ArrayList<Individuo>();
+		boolean escolhidos[] = new boolean[populacao.size()];
+		for(int i = 0; i < populacao.size(); i++){
 			escolhidos[i] = false;
 		}
 		
-		int contPopInter = 0;
-		int[][] populacaoInter = new int[tamPopulacaoInter][22];
-		int contTrue = 0;
+		Random rand = new Random();
+		int intervalo = 50;
 		for(int i = 0; i < tamPopulacaoInter; i++){
 			
-			int escolhido1 = rand.nextInt(inter);
+			int escolhido1 = rand.nextInt(intervalo);
 			while(escolhidos[escolhido1]){
-				escolhido1 = rand.nextInt(inter);
+				escolhido1 = rand.nextInt(intervalo);
 			}
 			escolhidos[escolhido1] = true;
-			contTrue++;
 			
-			int escolhido2 = rand.nextInt(inter);
+			int escolhido2 = rand.nextInt(intervalo);
 			while(escolhido1 == escolhido2 || escolhidos[escolhido2]){
-				escolhido2 = rand.nextInt(inter);
+				escolhido2 = rand.nextInt(intervalo);
 			}
 			escolhidos[escolhido2] = true;
-			contTrue++;
 			
-			int[] cromossomo1 = getCromossomo(populacao, escolhido1);
-			int[] cromossomo2 = getCromossomo(populacao, escolhido2);
+			Individuo individuo1 = populacao.get(escolhido1);
+			Individuo individuo2 = populacao.get(escolhido2);
 			
-			double fitness1 = fitness(getReal(getDecimal(cromossomo1)));
-			double fitness2 = fitness(getReal(getDecimal(cromossomo2)));
+			double fitness1 = individuo1.getFitness();
+			double fitness2 = individuo2.getFitness();
 			
 			if(fitness1 > fitness2){
-				populacaoInter[contPopInter] = cromossomo1;
+				populacaoIntermediaria.add(individuo1);
 				escolhidos[escolhido2] = false;
+				System.out.println(Arrays.toString(individuo1.cromossomo));
 			}
 			else{
-				populacaoInter[contPopInter] = cromossomo2;
+				populacaoIntermediaria.add(individuo2);
 				escolhidos[escolhido1] = false;
+				System.out.println(Arrays.toString(individuo2.cromossomo));
 			}
-			contPopInter++;
-			//System.out.println("i = " + i);
-			//System.out.println("contTrue = " + contTrue);
 			
 		}
 		
-		/*System.out.println("Popula√ß√£o Intermedi√°ria: ");
-		for(int i = 0; i < populacaoInter.length; i++){
-			for(int j = 0; j < 22; j++){
-				System.out.print(populacaoInter[i][j] + " ");
-			}
-			System.out.println("\r\n");
-		}
+		System.out.println("\n* Tamanho populaÁ„o intermedi·ria: " + populacaoIntermediaria.size());
 		
-		System.out.println("tamanho populacao inter: " + populacaoInter.length);*/
-		
-		return populacaoInter;
+		return populacaoIntermediaria;
 		
 	}
 	
-	private static int[] getCromossomo(int[][] populacao, int c){
+	private static ArrayList<Individuo> cruzamento(ArrayList<Individuo> populacao, double taxa){
 		
-		int[] cromossomo = new int[22];
-		for(int i = 0; i < 22; i++){
-			cromossomo[i] = populacao[c][i];
-		}
-		return cromossomo;
+		System.out.println("\n=> Realizando cruzamento...\n");
 		
-	}
-	
-	private static int[][] cruzamento(int[][] populacao, double taxa){
+		ArrayList<Individuo> filhos = new ArrayList<Individuo>();
 		
-		int quant = (int) (populacao.length*taxa);
-		
-		int[][] populacaoCruzada = new int[quant][22];
-		
-		for(int i = 0; i < populacao.length - 1; i++){
+		for(int i = 0; i < populacao.size() - 1; i++){
 			double r = Math.random();
 			if(r > taxa){
 				
-				int[] pai1 = getCromossomo(populacao, i);
-				int[] pai2 = getCromossomo(populacao, i+1);
+				int[] pai1 = populacao.get(i).getVetorCromossomo();
+				int[] pai2 = populacao.get(i+1).getVetorCromossomo();
 				
-				int[] filho1 = new int[22];
+				int[] filho1 = new int[tamCromossomo];
 
-				for(int f = 0; f < 22; f++){
-					if(f < 11){
+				for(int f = 0; f < tamCromossomo; f++){
+					if(f < (tamCromossomo/2)){
 						filho1[f] = pai1[f];
 					}
 					else{
@@ -166,12 +120,13 @@ public class Main {
 					
 				}
 				
+				filhos.add(new Individuo(filho1));
 				System.out.println(Arrays.toString(filho1));
-				System.out.println("Tamanho Filho 1: " + filho1.length);
+				//System.out.println("Tamanho Filho 1: " + filho1.length);
 				
 				int[] filho2 = new int[22];
 
-				for(int f = 0; f < 22; f++){
+				for(int f = 0; f < tamCromossomo; f++){
 					if(f < 11){
 						filho2[f] = pai2[f];
 					}
@@ -181,17 +136,16 @@ public class Main {
 					
 				}
 				
+				filhos.add(new Individuo(filho2));
 				System.out.println(Arrays.toString(filho2));
-				System.out.println("Tamanho Filho 2: " + filho1.length);
+				//System.out.println("Tamanho Filho 2: " + filho1.length);
 				
 			}
-
-			
-		
-			
 		}
 		
-		return populacaoCruzada;
+		System.out.println("\n* Quantidade de filhos gerados: " + filhos.size());
+		
+		return filhos;
 		
 	}
 	
