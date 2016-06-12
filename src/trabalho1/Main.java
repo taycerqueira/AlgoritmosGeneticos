@@ -8,14 +8,18 @@ public class Main {
 	
 	private static final int tamCromossomo = 22;
 	private static final int tamPopulacaoIncial = 50;
+	private static final double criterioParada = 2.85027;
 
 	public static void main(String[] args) {
 		
 		System.out.println(" ======= Algoritmo Genético =======\n");
 		
+		boolean continua = true;
+		
 		ArrayList<Individuo> populacaoIncial = gerarPopulacaoInicial(tamPopulacaoIncial);
-		ArrayList<Individuo> populacaoIntermediaria = selecaoTorneio(populacaoIncial, 28);
-		cruzamento(populacaoIntermediaria, 0.7);
+		ArrayList<Individuo> populacaoIntermediaria1 = selecaoTorneio(populacaoIncial, 28);
+		ArrayList<Individuo> populacaoIntermediaria2 = cruzamento(populacaoIntermediaria1, 0.7);
+		ArrayList<Individuo> populacaoIntermediaria3 = mutacao(populacaoIntermediaria2, 0.05);
 
 	}
 	
@@ -103,7 +107,7 @@ public class Main {
 		
 		for(int i = 0; i < populacao.size() - 1; i++){
 			double r = Math.random();
-			if(r > taxa){
+			if(r < taxa){
 				
 				int[] pai1 = populacao.get(i).getVetorCromossomo();
 				int[] pai2 = populacao.get(i+1).getVetorCromossomo();
@@ -146,6 +150,37 @@ public class Main {
 		System.out.println("\n* Quantidade de filhos gerados: " + filhos.size());
 		
 		return filhos;
+		
+	}
+	
+	private static ArrayList<Individuo> mutacao(ArrayList<Individuo> populacao, double taxa){
+		
+		System.out.println("\n=> Realizando mutação...\n");
+		
+		ArrayList<Individuo> filhos = new ArrayList<Individuo>();
+		int contMutacao = 0;
+		
+		for(int i = 0; i < populacao.size() - 1; i++){
+			double r = Math.random();
+			if(r < taxa){
+				Random rand = new Random();
+				int indice = rand.nextInt(tamCromossomo);
+				int gene = populacao.get(i).cromossomo[indice];
+				if(gene == 1){
+					populacao.get(i).alteraGene(indice, 0);
+				}
+				else{
+					populacao.get(i).alteraGene(indice, 1);
+				}
+				System.out.println("Cromossomo alterado: " + i + " | Gente alterado: " + indice);
+				System.out.println(Arrays.toString(populacao.get(i).cromossomo) + "\r\n");
+				contMutacao++;
+			}
+		}
+		
+		System.out.println("* Quantidade de individuos mutados: " + contMutacao);
+		
+		return populacao;
 		
 	}
 	

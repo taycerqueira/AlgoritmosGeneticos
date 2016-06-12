@@ -16,6 +16,12 @@ public class Individuo {
 		
 	}
 	
+	public void alteraGene(int i, int gene){
+		
+		this.cromossomo[i] = gene;
+		
+	}
+	
 	public int getValorDecimal(){
 		
 		int decimal = 0;
