@@ -2,6 +2,7 @@ package trabalho1;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Random;
 
 public class Main {
@@ -23,9 +24,9 @@ public class Main {
 			ArrayList<Individuo> populacaoInicial = gerarPopulacaoInicial(tamPopulacaoIncial);
 			ArrayList<Individuo> populacaoIntermediaria = selecaoTorneio(populacaoInicial, 28);
 			ArrayList<Individuo> filhosPopulacaoIntermediaria = cruzamento(populacaoIntermediaria, 0.7);
+			populacaoIntermediaria.addAll(filhosPopulacaoIntermediaria);
 			ArrayList<Individuo> populacaoIntermediariaMutada = mutacao(populacaoIntermediaria, 0.05);
 			
-			populacaoInicial.addAll(filhosPopulacaoIntermediaria);
 			populacaoInicial.addAll(populacaoIntermediariaMutada);
 			
 			ArrayList<Individuo> populacaoFinal = selecionaMelhores(populacaoInicial, tamPopulacaoIncial);
@@ -33,6 +34,8 @@ public class Main {
 				melhorIndividuo = populacaoFinal.get(0);
 				continua = false;
 			}
+			
+			Collections.shuffle(populacaoFinal);
 			
 		}
 		System.out.println(" => Melhor individuo encontrado!");
