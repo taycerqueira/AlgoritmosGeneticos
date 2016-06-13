@@ -15,11 +15,30 @@ public class Main {
 		System.out.println(" ======= Algoritmo Genético =======\n");
 		
 		boolean continua = true;
+		int contGeracao = 0;
+		Individuo melhorIndividuo = null;
 		
-		ArrayList<Individuo> populacaoIncial = gerarPopulacaoInicial(tamPopulacaoIncial);
-		ArrayList<Individuo> populacaoIntermediaria1 = selecaoTorneio(populacaoIncial, 28);
-		ArrayList<Individuo> populacaoIntermediaria2 = cruzamento(populacaoIntermediaria1, 0.7);
-		ArrayList<Individuo> populacaoIntermediaria3 = mutacao(populacaoIntermediaria2, 0.05);
+		while(continua){
+			contGeracao++;
+			ArrayList<Individuo> populacaoInicial = gerarPopulacaoInicial(tamPopulacaoIncial);
+			ArrayList<Individuo> populacaoIntermediaria = selecaoTorneio(populacaoInicial, 28);
+			ArrayList<Individuo> filhosPopulacaoIntermediaria = cruzamento(populacaoIntermediaria, 0.7);
+			ArrayList<Individuo> populacaoIntermediariaMutada = mutacao(populacaoIntermediaria, 0.05);
+			
+			populacaoInicial.addAll(filhosPopulacaoIntermediaria);
+			populacaoInicial.addAll(populacaoIntermediariaMutada);
+			
+			ArrayList<Individuo> populacaoFinal = selecionaMelhores(populacaoInicial, tamPopulacaoIncial);
+			if(populacaoFinal.get(0).getFitness() >= criterioParada){
+				melhorIndividuo = populacaoFinal.get(0);
+				continua = false;
+			}
+			
+		}
+		System.out.println(" => Melhor individuo encontrado!");
+		System.out.println("* Geração: " + contGeracao);
+		System.out.println("* Fitness: " + melhorIndividuo.getFitness());
+		System.out.println("* Cromossomo: " + Arrays.toString(melhorIndividuo.cromossomo));
 
 	}
 	
@@ -173,7 +192,7 @@ public class Main {
 					populacao.get(i).alteraGene(indice, 1);
 				}
 				System.out.println("Cromossomo alterado: " + i + " | Gente alterado: " + indice);
-				System.out.println(Arrays.toString(populacao.get(i).cromossomo) + "\r\n");
+				//System.out.println(Arrays.toString(populacao.get(i).cromossomo) + "\r\n");
 				contMutacao++;
 			}
 		}
@@ -181,6 +200,38 @@ public class Main {
 		System.out.println("* Quantidade de individuos mutados: " + contMutacao);
 		
 		return populacao;
+		
+	}
+	
+	private static ArrayList<Individuo> selecionaMelhores(ArrayList<Individuo> populacao, int quant){
+		
+		System.out.println("\n=> Selecionando os melhores...\n");
+		
+		ArrayList<Individuo> populacaoFinal = new ArrayList<Individuo>();
+		boolean escolhidos[] = new boolean[populacao.size()];
+		for(int i= 0; i < populacao.size(); i++){
+			escolhidos[i] = false;
+		}
+		
+		while(quant > 0){
+			double maiorFitness = Double.MIN_VALUE;
+			int index = -1;
+			for(int i = 0; i < populacao.size(); i++){
+				if(populacao.get(i).getFitness() > maiorFitness && !escolhidos[i]){
+					maiorFitness = populacao.get(i).getFitness();
+					index = i;
+				}
+			}
+			//System.out.println(" - Fitness: " + populacao.get(index).getFitness());
+			populacaoFinal.add(populacao.get(index));
+			escolhidos[index] = true;
+			quant--;
+			
+		}
+		
+		//System.out.println("* Melhores: " + populacaoFinal.size());
+		
+		return populacaoFinal;
 		
 	}
 	
