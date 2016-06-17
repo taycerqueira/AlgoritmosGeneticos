@@ -32,6 +32,16 @@ public class Main {
 		
 		ArrayList<Individuo> populacaoInicial = gerarPopulacaoInicial(tamPopulacaoIncial);
 		ArrayList<Individuo> populacaoIntermediaria = selecaoTorneio(populacaoInicial, 28);
+		ArrayList<Individuo> filhosPopulacaoIntermediaria = cruzamentoOX(populacaoIntermediaria, 0.7);
+		
+		/*int[] vetor1 = new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9};
+		int[] vetor2 = new int[]{4, 5, 2, 1, 8, 7, 6, 9, 3};
+		Individuo ind1 = new Individuo(vetor1);
+		Individuo ind2 = new Individuo(vetor2);
+		ArrayList<Individuo> popTeste = new ArrayList<Individuo>();
+		popTeste.add(ind1);
+		popTeste.add(ind2);
+		cruzamentoOX(popTeste, 1);*/
 		
 		/*while(continua){
 			contGeracao++;
@@ -144,6 +154,135 @@ public class Main {
 		
 		return populacaoIntermediaria;
 		
+	}
+	
+	private static ArrayList<Individuo> cruzamentoOX(ArrayList<Individuo> populacao, double taxa){
+		
+		System.out.println("\n=> Realizando cruzamento...\n");
+		
+		ArrayList<Individuo> filhos = new ArrayList<Individuo>();
+		
+		for(int i = 0; i < populacao.size() - 1; i++){
+			double r = Math.random();
+			if(r < taxa){
+				
+				int[] pai1 = populacao.get(i).getVetorCromossomo();
+				int[] pai2 = populacao.get(i+1).getVetorCromossomo();
+				
+				int[] filho1 = new int[tamCromossomo];
+				int[] filho2 = new int[tamCromossomo];
+				for(int j = 0; j < tamCromossomo; j++){
+					filho1[j] = -1;
+					filho2[j] = -1;
+				}
+				
+				int a;
+				/*if(tamCromossomo%3 == 0){
+					a = tamCromossomo/3;
+				}
+				else{
+					a = (tamCromossomo/3) + 1;
+				}*/
+				a = tamCromossomo/3;
+				int corte1 = a;
+				int corte2 = 2*a;
+
+				for(int f = corte1; f < corte2; f++){
+					
+					filho1[f] = pai1[f];
+					filho2[f] = pai2[f];
+				}
+				
+				int cont = (tamCromossomo - a);
+				
+				int f = corte2;
+				int p = corte2;
+				
+				//Gera filho 1
+				while(cont > 0){
+					if(f == tamCromossomo){
+						f = 0;
+					}
+					if(p == tamCromossomo){
+						p = 0;
+					}
+					if(filho1[f] == -1){
+						
+						while(cidadeJaExiste(filho1, pai2[p])){
+							if(p == (tamCromossomo)){
+								p = 0;
+							}
+							p++;
+							
+						}
+						filho1[f] = pai2[p];
+						cont--;
+						f++;
+						p++;
+						
+					}
+					System.out.println("cont: " + cont);
+				}
+				
+				//System.out.println(Arrays.toString(pai1));
+				//System.out.println(Arrays.toString(pai2));
+				System.out.println(Arrays.toString(filho1));
+				
+				filhos.add(new Individuo(filho1));
+				//System.out.println("Tamanho Filho 1: " + filho1.length);
+				
+				cont = (tamCromossomo - a);
+				f = corte2;
+				p = corte2;
+				
+				//Gera filho 2
+				while(cont > 0){
+					if(f == tamCromossomo){
+						f = 0;
+					}
+					if(p == tamCromossomo){
+						p = 0;
+					}
+					if(filho2[f] == -1){
+						
+						while(cidadeJaExiste(filho2, pai1[p])){
+							if(p == (tamCromossomo - 1)){
+								p = 0;
+							}
+							p++;
+							
+						}
+						filho2[f] = pai1[p];
+						cont--;
+						f++;
+						p++;
+						
+					}
+					System.out.println("cont: " + cont);
+				}                                             
+
+				filhos.add(new Individuo(filho2));
+				//System.out.println(Arrays.toString(filho2));
+				//System.out.println("Tamanho Filho 2: " + filho1.length);
+				
+			}
+		}
+		
+		System.out.println("\n* Quantidade de filhos gerados: " + filhos.size());
+		
+		return filhos;
+		
+	}
+	
+	private static boolean cidadeJaExiste(int[] caminho, int cidade){
+		
+		for(int i = 0; i < caminho.length; i++){
+			if(caminho[i] == cidade){
+				return true;
+			}
+		}
+			
+		return false;
 	}
 	
 	private static ArrayList<Individuo> cruzamento(ArrayList<Individuo> populacao, double taxa){
