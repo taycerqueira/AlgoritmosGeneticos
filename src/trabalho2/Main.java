@@ -14,7 +14,8 @@ public class Main {
 	
 	private static int tamCromossomo;
 	private static final int tamPopulacaoIncial = 50;
-	private static final double criterioParada = 20.000;
+	private static final double criterioParada = 20000;
+	//private static final double criterioParada = 21282;
 	
 	private static double[][] matrizDistancia;
 	
@@ -30,28 +31,14 @@ public class Main {
 		matrizDistancia = getMatriz("kroA100.tsp");
 		tamCromossomo = matrizDistancia.length;
 		
-		ArrayList<Individuo> populacaoInicial = gerarPopulacaoInicial(tamPopulacaoIncial);
-		ArrayList<Individuo> populacaoIntermediaria = selecaoTorneio(populacaoInicial, 28);
-		ArrayList<Individuo> filhosPopulacaoIntermediaria = cruzamentoOX(populacaoIntermediaria, 0.7);
-		
-		/*int[] vetor1 = new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9};
-		int[] vetor2 = new int[]{4, 5, 2, 1, 8, 7, 6, 9, 3};
-		Individuo ind1 = new Individuo(vetor1);
-		Individuo ind2 = new Individuo(vetor2);
-		ArrayList<Individuo> popTeste = new ArrayList<Individuo>();
-		popTeste.add(ind1);
-		popTeste.add(ind2);
-		cruzamentoOX(popTeste, 1);*/
-		
-		/*while(continua){
+		while(continua){
+			
 			contGeracao++;
 			ArrayList<Individuo> populacaoInicial = gerarPopulacaoInicial(tamPopulacaoIncial);
 			ArrayList<Individuo> populacaoIntermediaria = selecaoTorneio(populacaoInicial, 28);
-			ArrayList<Individuo> filhosPopulacaoIntermediaria = cruzamento(populacaoIntermediaria, 0.7);
+			ArrayList<Individuo> filhosPopulacaoIntermediaria = cruzamentoOX(populacaoIntermediaria, 0.7);
 			populacaoIntermediaria.addAll(filhosPopulacaoIntermediaria);
-			
-			ArrayList<Individuo> populacaoIntermediariaMutada = mutacao(populacaoIntermediaria, 0.05);
-			
+			ArrayList<Individuo> populacaoIntermediariaMutada = mutacaoSwap(populacaoIntermediaria, 0.05);
 			populacaoInicial.addAll(populacaoIntermediariaMutada);
 			
 			ArrayList<Individuo> populacaoFinal = selecionaMelhores(populacaoInicial, tamPopulacaoIncial);
@@ -66,7 +53,7 @@ public class Main {
 		System.out.println(" => Melhor individuo encontrado!");
 		System.out.println("* Geração: " + contGeracao);
 		System.out.println("* Fitness: " + melhorIndividuo.getFitness(matrizDistancia));
-		System.out.println("* Cromossomo: " + Arrays.toString(melhorIndividuo.cromossomo));*/
+		System.out.println("* Cromossomo: " + Arrays.toString(melhorIndividuo.cromossomo));
 
 	}
 	
@@ -78,7 +65,7 @@ public class Main {
 
 		for(int i = 0; i < quant; i++){
 			int[] cromossomo = getCromossomoEmbaralhado(tamCromossomo);
-			System.out.println(Arrays.toString(cromossomo));
+			//System.out.println(Arrays.toString(cromossomo));
 			populacaoInicial.add(new Individuo(cromossomo));
 		}
 		
@@ -140,12 +127,12 @@ public class Main {
 			if(fitness1 > fitness2){
 				populacaoIntermediaria.add(individuo1);
 				escolhidos[escolhido2] = false;
-				System.out.println(Arrays.toString(individuo1.cromossomo));
+				//System.out.println(Arrays.toString(individuo1.cromossomo));
 			}
 			else{
 				populacaoIntermediaria.add(individuo2);
 				escolhidos[escolhido1] = false;
-				System.out.println(Arrays.toString(individuo2.cromossomo));
+				//System.out.println(Arrays.toString(individuo2.cromossomo));
 			}
 			
 		}
@@ -176,14 +163,8 @@ public class Main {
 					filho2[j] = -1;
 				}
 				
-				int a;
-				/*if(tamCromossomo%3 == 0){
-					a = tamCromossomo/3;
-				}
-				else{
-					a = (tamCromossomo/3) + 1;
-				}*/
-				a = tamCromossomo/3;
+				int a = tamCromossomo/3;
+				//System.out.println("a = " + a);
 				int corte1 = a;
 				int corte2 = 2*a;
 
@@ -207,12 +188,14 @@ public class Main {
 						p = 0;
 					}
 					if(filho1[f] == -1){
+						//System.out.println("p1 = " + p);
 						
 						while(cidadeJaExiste(filho1, pai2[p])){
+							p++;
 							if(p == (tamCromossomo)){
 								p = 0;
 							}
-							p++;
+							
 							
 						}
 						filho1[f] = pai2[p];
@@ -221,12 +204,12 @@ public class Main {
 						p++;
 						
 					}
-					System.out.println("cont: " + cont);
+					//System.out.println("cont: " + cont);
 				}
 				
 				//System.out.println(Arrays.toString(pai1));
 				//System.out.println(Arrays.toString(pai2));
-				System.out.println(Arrays.toString(filho1));
+				//System.out.println(Arrays.toString(filho1));
 				
 				filhos.add(new Individuo(filho1));
 				//System.out.println("Tamanho Filho 1: " + filho1.length);
@@ -244,12 +227,13 @@ public class Main {
 						p = 0;
 					}
 					if(filho2[f] == -1){
-						
+						//System.out.println("p2 = " + p);
 						while(cidadeJaExiste(filho2, pai1[p])){
-							if(p == (tamCromossomo - 1)){
+							p++;
+							if(p == (tamCromossomo)){
 								p = 0;
 							}
-							p++;
+							
 							
 						}
 						filho2[f] = pai1[p];
@@ -258,7 +242,7 @@ public class Main {
 						p++;
 						
 					}
-					System.out.println("cont: " + cont);
+					//System.out.println("cont: " + cont);
 				}                                             
 
 				filhos.add(new Individuo(filho2));
@@ -311,7 +295,7 @@ public class Main {
 				}
 				
 				filhos.add(new Individuo(filho1));
-				System.out.println(Arrays.toString(filho1));
+				//System.out.println(Arrays.toString(filho1));
 				//System.out.println("Tamanho Filho 1: " + filho1.length);
 				
 				int[] filho2 = new int[22];
@@ -327,7 +311,7 @@ public class Main {
 				}
 				
 				filhos.add(new Individuo(filho2));
-				System.out.println(Arrays.toString(filho2));
+				//System.out.println(Arrays.toString(filho2));
 				//System.out.println("Tamanho Filho 2: " + filho1.length);
 				
 			}
@@ -336,6 +320,44 @@ public class Main {
 		System.out.println("\n* Quantidade de filhos gerados: " + filhos.size());
 		
 		return filhos;
+		
+	}
+	
+	private static ArrayList<Individuo> mutacaoSwap(ArrayList<Individuo> populacao, double taxa){
+		
+		System.out.println("\n=> Realizando mutação...\n");
+		
+		ArrayList<Individuo> filhos = new ArrayList<Individuo>();
+		int contMutacao = 0;
+		
+		for(int individuo1 = 0; individuo1 < populacao.size() - 1; individuo1++){
+			double r = Math.random();
+			if(r < taxa){
+				Random rand = new Random();
+				int individuo2 = rand.nextInt(populacao.size());
+				
+				while(individuo1 == individuo2){
+					individuo2 = rand.nextInt(populacao.size());
+				}
+				
+				//System.out.println("cromossomo 1: " + individuo1);
+				//System.out.println("cromossomo 2: " + individuo2);
+				int gene1 = populacao.get(individuo1).cromossomo[individuo1];
+				int gene2 = populacao.get(individuo2).cromossomo[individuo2];
+				
+				populacao.get(individuo1).alteraGene(individuo1, gene2);
+				populacao.get(individuo2).alteraGene(individuo2, gene1);
+				
+				//System.out.println("Cromossomo 1 alterado: " + individuo1 + " | Gente alterado: " + gene1);
+				//System.out.println("Cromossomo 2 alterado: " + individuo2 + " | Gente alterado: " + gene2);
+				//System.out.println(Arrays.toString(populacao.get(i).cromossomo) + "\r\n");
+				contMutacao++;
+			}
+		}
+		
+		System.out.println("* Quantidade de indivíduos mutados: " + contMutacao);
+		
+		return populacao;
 		
 	}
 	
@@ -382,14 +404,14 @@ public class Main {
 		
 		while(quant > 0){
 			double maiorFitness = Double.MIN_VALUE;
-			int index = -1;
+			int index = 0;
 			for(int i = 0; i < populacao.size(); i++){
 				if(populacao.get(i).getFitness(matrizDistancia) > maiorFitness && !escolhidos[i]){
 					maiorFitness = populacao.get(i).getFitness(matrizDistancia);
 					index = i;
 				}
 			}
-			//System.out.println(" - Fitness: " + populacao.get(index).getFitness());
+			//System.out.println(" - Fitness: " + populacao.get(index).getFitness(matrizDistancia));
 			populacaoFinal.add(populacao.get(index));
 			escolhidos[index] = true;
 			quant--;
@@ -406,69 +428,37 @@ public class Main {
 		
 		System.out.println("=> Lendo matriz de distâncias...");
 		
+		ArrayList<Cidade> cidades = new ArrayList<Cidade>();
 		double[][] matriz = null;
 		File arquivo = new File(nomeArquivo);
+		
 		try(InputStream in = new FileInputStream(arquivo) ){
+			
 		  Scanner scan = new Scanner(in);
 		  int numeroCidades = 0;
-		  while(!scan.next().equals("EOF")){
+		  
+		  //while(!scan.next().equals("EOF")){
+		  while(scan.hasNext()){
 			  
 			  String s = scan.next();
 			  //System.out.println("s: " + s);
+			  
 			  if(s.equals("DIMENSION:")){
 				  numeroCidades = scan.nextInt();
 				  matriz = new double[numeroCidades][numeroCidades];
 				  //System.out.println("Número de cidades: " + numeroCidades);
 			  }
 			  
-			  int cAnterior = 0;
-			  double xAnterior = 0;
-			  double yAnterior = 0;
 			  
 			  if(s.equals("NODE_COORD_SECTION")){
 				  for(int i = 0; i < numeroCidades - 1; i++){
-					  if(i == 0){
-						  int numCidade1 = scan.nextInt();
-						  //System.out.println("numCidade: " + numCidade1);
-						  double x1 = Double.parseDouble(scan.next());
-						  //System.out.println("x1: " + x1);
-						  double y1 = Double.parseDouble(scan.next());
-						  //System.out.println("y1: " + y1);
-						  
-						  int numCidade2 = scan.nextInt();
-						  cAnterior = numCidade2;
-						  //System.out.println("numCidade: " + numCidade2);
-						  double x2 = Double.parseDouble(scan.next());
-						  xAnterior = x2;
-						  //System.out.println("x2: " + x2);
-						  double y2 = Double.parseDouble(scan.next());
-						  yAnterior = y2;
-						  //System.out.println("y1: " + y2);
-						  
-						  double distancia =  Math.sqrt((Math.pow((x2 - x1), 2) + (Math.pow((y2 - y1), 2))));
-						  matriz[i][i+1] = distancia;
-					  }
-					  else{
-						  
-						  //System.out.println("numCidade: " + cAnterior);
-						  //System.out.println("xAnterior: " + xAnterior);
-						  //System.out.println("yAnterior: " + yAnterior);
-						  
-						  int numCidade = scan.nextInt();
-						  //System.out.println("numCidade: " + numCidade);
-						  cAnterior = numCidade;
-						  double x = Double.parseDouble(scan.next());
-						  //System.out.println("x: " + x);
-						  xAnterior = x;
-						  double y = Double.parseDouble(scan.next());
-						  //System.out.println("y: " + y);
-						  yAnterior = y;
-						  
-						  double distancia =  Math.sqrt((Math.pow((x - xAnterior), 2) + (Math.pow((y - yAnterior), 2))));
-						  matriz[i][i+1] = distancia;
-						  
-					  }	  
-						   
+					  int numCidade = scan.nextInt();
+					  //System.out.println("numCidade: " + numCidade);
+					  double x = Double.parseDouble(scan.next());
+					  //System.out.println("x: " + x);
+					  double y = Double.parseDouble(scan.next());
+					 //System.out.println("x: " + x);
+					  cidades.add(new Cidade(numCidade, x, y));	   
 				  }
 			
 			  }
@@ -479,7 +469,22 @@ public class Main {
 		}
 		
 		System.out.println("\n* Arquivo lido com sucesso");
+		System.out.println("\n* Criando matriz...");
+		
+		for(int i = 0; i < cidades.size(); i++){
+			for(int j = 0; j < cidades.size(); j++){
+				double distancia = cidades.get(i).getDistanciaEuclidiana(cidades.get(j).getX(), cidades.get(j).getY());		
+				matriz[i][j] = distancia;
+				matriz[j][i] = distancia;
+			}
+		}
+		
 		System.out.println("* Tamanho da matriz: " + matriz.length);
+		
+		/*for(int i = 0; i < matriz.length; i++){
+			System.out.println(Arrays.toString(matriz[i]));
+		}*/
+		//System.exit(0);
 		return matriz;
 	}
 	
