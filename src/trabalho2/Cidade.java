@@ -26,7 +26,17 @@ public class Cidade {
 	
 	public double getDistanciaEuclidiana(double x, double y){
 		
-		return Math.sqrt((Math.pow((x - this.x), 2) + (Math.pow((y - this.y), 2))));
+		int d = (int) Math.sqrt((Math.pow((this.x - x), 2) + (Math.pow((this.y - y), 2))));
+		/*if(this.x != x){
+			System.out.println("x1 = " + this.x);
+			System.out.println("x2 = " + x);
+			System.out.println("y1 = " + this.y);
+			System.out.println("y2 = " + y);
+			System.out.println("d = " + d);
+			System.exit(0);
+		}*/
+		
+		return d;
 		
 	}
 

@@ -18,6 +18,10 @@ public class Individuo {
 		
 	}
 	
+	public void setCromossomo(int[] cromossomo) {
+		this.cromossomo = cromossomo;
+	}
+
 	public void alteraGene(int i, int gene){
 		
 		this.cromossomo[i] = gene;

@@ -9,13 +9,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Random;
 import java.util.Scanner;
+import java.util.Spliterator.OfInt;
 
 public class Main {
 	
 	private static int tamCromossomo;
 	private static final int tamPopulacaoIncial = 50;
-	private static final double criterioParada = 20000;
-	//private static final double criterioParada = 21282;
+	private static final double criterioParada = 22000;
+	//private static final double criterioParada = 21282; //Menor distância
 	
 	private static double[][] matrizDistancia;
 	
@@ -31,18 +32,25 @@ public class Main {
 		matrizDistancia = getMatriz("kroA100.tsp");
 		tamCromossomo = matrizDistancia.length;
 		
+		System.out.println("Executando algoritmo. Aguarde...");
+		
 		while(continua){
 			
 			contGeracao++;
+			System.out.println("Geração: " + contGeracao);
 			ArrayList<Individuo> populacaoInicial = gerarPopulacaoInicial(tamPopulacaoIncial);
 			ArrayList<Individuo> populacaoIntermediaria = selecaoTorneio(populacaoInicial, 28);
 			ArrayList<Individuo> filhosPopulacaoIntermediaria = cruzamentoOX(populacaoIntermediaria, 0.7);
 			populacaoIntermediaria.addAll(filhosPopulacaoIntermediaria);
-			ArrayList<Individuo> populacaoIntermediariaMutada = mutacaoSwap(populacaoIntermediaria, 0.05);
+			//ArrayList<Individuo> populacaoIntermediariaMutada = mutacaoSwap(populacaoIntermediaria, 0.05);
+			ArrayList<Individuo> populacaoIntermediariaMutada = mutacaoSwapCompleto(populacaoIntermediaria, 0.05);
 			populacaoInicial.addAll(populacaoIntermediariaMutada);
 			
 			ArrayList<Individuo> populacaoFinal = selecionaMelhores(populacaoInicial, tamPopulacaoIncial);
-			if(populacaoFinal.get(0).getFitness(matrizDistancia) >= criterioParada){
+			double menorDistancia = populacaoFinal.get(0).getFitness(matrizDistancia);
+			System.out.println("Melhor fitness (menor distância): " + (int)menorDistancia);
+			
+			if(menorDistancia <= criterioParada){
 				melhorIndividuo = populacaoFinal.get(0);
 				continua = false;
 			}
@@ -59,7 +67,7 @@ public class Main {
 	
 	private static ArrayList<Individuo> gerarPopulacaoInicial(int quant){
 		
-		System.out.println("\n=> Gerando população Inicial...\n");
+		//System.out.println("\n=> Gerando população Inicial...\n");
 		
 		ArrayList<Individuo> populacaoInicial = new ArrayList<Individuo>();
 
@@ -69,7 +77,7 @@ public class Main {
 			populacaoInicial.add(new Individuo(cromossomo));
 		}
 		
-		System.out.println("\n* Tamanho da população inicial: " + populacaoInicial.size());
+		//System.out.println("\n* Tamanho da população inicial: " + populacaoInicial.size());
 		return populacaoInicial;
 		
 	}
@@ -94,7 +102,7 @@ public class Main {
 	
 	private static ArrayList<Individuo> selecaoTorneio(ArrayList<Individuo> populacao, int tamPopulacaoInter){
 		
-		System.out.println("\n=> Realizando Torneio...\n");
+		//System.out.println("\n=> Realizando Torneio...\n");
 		
 		ArrayList<Individuo> populacaoIntermediaria = new ArrayList<Individuo>();
 		boolean escolhidos[] = new boolean[populacao.size()];
@@ -124,7 +132,7 @@ public class Main {
 			double fitness1 = individuo1.getFitness(matrizDistancia);
 			double fitness2 = individuo2.getFitness(matrizDistancia);
 			
-			if(fitness1 > fitness2){
+			if(fitness1 < fitness2){ //se a distancia 1 for menor que a distancia 2 (quando menor a distancia melhor o fitness)
 				populacaoIntermediaria.add(individuo1);
 				escolhidos[escolhido2] = false;
 				//System.out.println(Arrays.toString(individuo1.cromossomo));
@@ -137,7 +145,7 @@ public class Main {
 			
 		}
 		
-		System.out.println("\n* Tamanho população intermediária: " + populacaoIntermediaria.size());
+		//System.out.println("\n* Tamanho população intermediária: " + populacaoIntermediaria.size());
 		
 		return populacaoIntermediaria;
 		
@@ -145,7 +153,7 @@ public class Main {
 	
 	private static ArrayList<Individuo> cruzamentoOX(ArrayList<Individuo> populacao, double taxa){
 		
-		System.out.println("\n=> Realizando cruzamento...\n");
+		//System.out.println("\n=> Realizando cruzamento...\n");
 		
 		ArrayList<Individuo> filhos = new ArrayList<Individuo>();
 		
@@ -252,7 +260,7 @@ public class Main {
 			}
 		}
 		
-		System.out.println("\n* Quantidade de filhos gerados: " + filhos.size());
+		//System.out.println("\n* Quantidade de filhos gerados: " + filhos.size());
 		
 		return filhos;
 		
@@ -271,7 +279,7 @@ public class Main {
 	
 	private static ArrayList<Individuo> cruzamento(ArrayList<Individuo> populacao, double taxa){
 		
-		System.out.println("\n=> Realizando cruzamento...\n");
+		//System.out.println("\n=> Realizando cruzamento...\n");
 		
 		ArrayList<Individuo> filhos = new ArrayList<Individuo>();
 		
@@ -317,45 +325,97 @@ public class Main {
 			}
 		}
 		
-		System.out.println("\n* Quantidade de filhos gerados: " + filhos.size());
+		//System.out.println("\n* Quantidade de filhos gerados: " + filhos.size());
 		
 		return filhos;
 		
 	}
 	
+	//Divide o cromossomo no meio e troca as partes
+	private static ArrayList<Individuo> mutacaoSwapCompleto(ArrayList<Individuo> populacao, double taxa){
+		
+		//System.out.println("\n=> Realizando mutação...\n");
+		
+		int contMutacao = 0;
+		boolean escolhidos[] = new boolean[populacao.size()];
+		for(int i= 0; i < populacao.size(); i++){
+			escolhidos[i] = false;
+		}
+		
+		for(int i = 0; i < populacao.size() - 1; i++){
+			double r = Math.random();
+			if(r < taxa && !escolhidos[i]){
+				
+				Individuo individuo = populacao.get(i);
+				
+				//System.out.println(Arrays.toString(individuo.cromossomo));
+				
+				int a = (tamCromossomo/2);
+				
+				int[] cromossomo = new int[tamCromossomo];
+				int[] p1 = Arrays.copyOfRange(individuo.cromossomo, 0, a);
+				//System.out.println("p1: " + Arrays.toString(p1) + " | tam: " + p1.length);
+				int[] p2 = Arrays.copyOfRange(individuo.cromossomo, a, tamCromossomo);
+				//System.out.println("p2: " + Arrays.toString(p2) + " | tam: " + p2.length);
+				
+				for(int j = 0; j < a; j++){
+					cromossomo[j] = p2[j];
+				}
+				int aux = 0;
+				for(int j = a; j < tamCromossomo; j++){
+					cromossomo[j] = p1[aux];
+					aux++;
+				}
+				//System.out.println(Arrays.toString(cromossomo));
+				//System.exit(0);
+				
+				escolhidos[i] = true;
+				contMutacao++;
+				//System.out.println(Arrays.toString(populacao.get(i).cromossomo) + "\r\n");
+				
+			}
+		}
+		
+		//System.out.println("* Quantidade de indivíduos mutados: " + contMutacao);
+		
+		return populacao;
+		
+	}
+	
 	private static ArrayList<Individuo> mutacaoSwap(ArrayList<Individuo> populacao, double taxa){
 		
-		System.out.println("\n=> Realizando mutação...\n");
+		//System.out.println("\n=> Realizando mutação...\n");
 		
-		ArrayList<Individuo> filhos = new ArrayList<Individuo>();
 		int contMutacao = 0;
+		boolean escolhidos[] = new boolean[populacao.size()];
+		for(int i= 0; i < populacao.size(); i++){
+			escolhidos[i] = false;
+		}
 		
-		for(int individuo1 = 0; individuo1 < populacao.size() - 1; individuo1++){
+		for(int i = 0; i < populacao.size() - 1; i++){
 			double r = Math.random();
-			if(r < taxa){
+			if(r < taxa && !escolhidos[i]){
 				Random rand = new Random();
-				int individuo2 = rand.nextInt(populacao.size());
 				
-				while(individuo1 == individuo2){
-					individuo2 = rand.nextInt(populacao.size());
+				int gene1 = rand.nextInt(tamCromossomo);
+				int gene2 = rand.nextInt(tamCromossomo);
+				while(gene1 == gene2){
+					gene2 = rand.nextInt(tamCromossomo);
 				}
 				
-				//System.out.println("cromossomo 1: " + individuo1);
-				//System.out.println("cromossomo 2: " + individuo2);
-				int gene1 = populacao.get(individuo1).cromossomo[individuo1];
-				int gene2 = populacao.get(individuo2).cromossomo[individuo2];
+				int cidade1 = populacao.get(i).cromossomo[gene1];
+				int cidade2 = populacao.get(i).cromossomo[gene2];
 				
-				populacao.get(individuo1).alteraGene(individuo1, gene2);
-				populacao.get(individuo2).alteraGene(individuo2, gene1);
+				populacao.get(i).alteraGene(gene1, cidade2);
+				populacao.get(i).alteraGene(gene2, cidade1);
+				escolhidos[i] = true;
 				
-				//System.out.println("Cromossomo 1 alterado: " + individuo1 + " | Gente alterado: " + gene1);
-				//System.out.println("Cromossomo 2 alterado: " + individuo2 + " | Gente alterado: " + gene2);
 				//System.out.println(Arrays.toString(populacao.get(i).cromossomo) + "\r\n");
 				contMutacao++;
 			}
 		}
 		
-		System.out.println("* Quantidade de indivíduos mutados: " + contMutacao);
+		//System.out.println("* Quantidade de indivíduos mutados: " + contMutacao);
 		
 		return populacao;
 		
@@ -363,7 +423,7 @@ public class Main {
 	
 	private static ArrayList<Individuo> mutacaoBinaria(ArrayList<Individuo> populacao, double taxa){
 		
-		System.out.println("\n=> Realizando mutação...\n");
+		//System.out.println("\n=> Realizando mutação...\n");
 		
 		ArrayList<Individuo> filhos = new ArrayList<Individuo>();
 		int contMutacao = 0;
@@ -386,7 +446,7 @@ public class Main {
 			}
 		}
 		
-		System.out.println("* Quantidade de individuos mutados: " + contMutacao);
+		//System.out.println("* Quantidade de individuos mutados: " + contMutacao);
 		
 		return populacao;
 		
@@ -394,7 +454,7 @@ public class Main {
 	
 	private static ArrayList<Individuo> selecionaMelhores(ArrayList<Individuo> populacao, int quant){
 		
-		System.out.println("\n=> Selecionando os melhores...\n");
+		//System.out.println("\n=> Selecionando os melhores...\n");
 		
 		ArrayList<Individuo> populacaoFinal = new ArrayList<Individuo>();
 		boolean escolhidos[] = new boolean[populacao.size()];
@@ -403,11 +463,11 @@ public class Main {
 		}
 		
 		while(quant > 0){
-			double maiorFitness = Double.MIN_VALUE;
+			double menorDistancia = Double.MAX_VALUE;
 			int index = 0;
 			for(int i = 0; i < populacao.size(); i++){
-				if(populacao.get(i).getFitness(matrizDistancia) > maiorFitness && !escolhidos[i]){
-					maiorFitness = populacao.get(i).getFitness(matrizDistancia);
+				if(populacao.get(i).getFitness(matrizDistancia) < menorDistancia && !escolhidos[i]){
+					menorDistancia = populacao.get(i).getFitness(matrizDistancia);
 					index = i;
 				}
 			}
@@ -426,7 +486,7 @@ public class Main {
 	
 	private static double[][] getMatriz(String nomeArquivo){
 		
-		System.out.println("=> Lendo matriz de distâncias...");
+		//System.out.println("=> Lendo matriz de distâncias...");
 		
 		ArrayList<Cidade> cidades = new ArrayList<Cidade>();
 		double[][] matriz = null;
@@ -483,8 +543,8 @@ public class Main {
 		
 		/*for(int i = 0; i < matriz.length; i++){
 			System.out.println(Arrays.toString(matriz[i]));
-		}*/
-		//System.exit(0);
+		}
+		System.exit(0);*/
 		return matriz;
 	}
 	
