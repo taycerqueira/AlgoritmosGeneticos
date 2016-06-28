@@ -14,8 +14,12 @@ import java.util.Spliterator.OfInt;
 public class Main {
 	
 	private static int tamCromossomo;
-	private static final int tamPopulacaoIncial = 50;
-	private static final double criterioParada = 22000;
+	private static final int tamPopulacaoIncial = 200;
+	private static final double criterioParada = 30000;
+	private static final double taxaPopulacaoIntermediaria = 0.6;
+	private static final double taxaCruzamento = 0.8;
+	private static final double taxaMutacao = 0.07;
+	
 	//private static final double criterioParada = 21282; //Menor distância
 	
 	private static double[][] matrizDistancia;
@@ -33,29 +37,33 @@ public class Main {
 		tamCromossomo = matrizDistancia.length;
 		
 		System.out.println("Executando algoritmo. Aguarde...");
+		ArrayList<Individuo> populacaoInicial = gerarPopulacaoInicial(tamPopulacaoIncial);
+		ArrayList<Individuo> populacao = new ArrayList<>(populacaoInicial);
 		
 		while(continua){
 			
 			contGeracao++;
 			System.out.println("Geração: " + contGeracao);
-			ArrayList<Individuo> populacaoInicial = gerarPopulacaoInicial(tamPopulacaoIncial);
-			ArrayList<Individuo> populacaoIntermediaria = selecaoTorneio(populacaoInicial, 28);
-			ArrayList<Individuo> filhosPopulacaoIntermediaria = cruzamentoOX(populacaoIntermediaria, 0.7);
-			populacaoIntermediaria.addAll(filhosPopulacaoIntermediaria);
-			//ArrayList<Individuo> populacaoIntermediariaMutada = mutacaoSwap(populacaoIntermediaria, 0.05);
-			ArrayList<Individuo> populacaoIntermediariaMutada = mutacaoSwapCompleto(populacaoIntermediaria, 0.05);
-			populacaoInicial.addAll(populacaoIntermediariaMutada);
+			ArrayList<Individuo> pais = selecaoTorneio(populacao, (int)(tamPopulacaoIncial*taxaPopulacaoIntermediaria));
+			ArrayList<Individuo> filhos = cruzamentoOX(pais, taxaCruzamento);
+			populacao.addAll(filhos);
+			//ArrayList<Individuo> filhosMutados = mutacaoSwapCompleto(filhos, taxaMutacao);
+			//populacao.addAll(filhosMutados);
 			
-			ArrayList<Individuo> populacaoFinal = selecionaMelhores(populacaoInicial, tamPopulacaoIncial);
-			double menorDistancia = populacaoFinal.get(0).getFitness(matrizDistancia);
+			//ArrayList<Individuo> populacaoMutada = mutacaoSwap(populacao, taxaMutacao);
+			ArrayList<Individuo> populacaoMutada = mutacaoSwapCompleto(populacao, taxaMutacao);
+			
+			ArrayList<Individuo> melhoresIndividuos = selecionaMelhores(populacaoMutada, tamPopulacaoIncial);
+			double menorDistancia = melhoresIndividuos.get(0).getFitness(matrizDistancia);
 			System.out.println("Melhor fitness (menor distância): " + (int)menorDistancia);
 			
 			if(menorDistancia <= criterioParada){
-				melhorIndividuo = populacaoFinal.get(0);
+				melhorIndividuo = melhoresIndividuos.get(0);
 				continua = false;
 			}
 			
-			Collections.shuffle(populacaoFinal);
+			Collections.shuffle(melhoresIndividuos);
+			populacao = new ArrayList<>(melhoresIndividuos);
 			
 		}
 		System.out.println(" => Melhor individuo encontrado!");
@@ -111,7 +119,7 @@ public class Main {
 		}
 		
 		Random rand = new Random();
-		int intervalo = 50;
+		int intervalo = populacao.size();
 		for(int i = 0; i < tamPopulacaoInter; i++){
 			
 			int escolhido1 = rand.nextInt(intervalo);
@@ -132,7 +140,7 @@ public class Main {
 			double fitness1 = individuo1.getFitness(matrizDistancia);
 			double fitness2 = individuo2.getFitness(matrizDistancia);
 			
-			if(fitness1 < fitness2){ //se a distancia 1 for menor que a distancia 2 (quando menor a distancia melhor o fitness)
+			if(fitness1 < fitness2){ //se a distancia 1 for menor que a distancia 2 (quanto menor a distancia melhor o fitness)
 				populacaoIntermediaria.add(individuo1);
 				escolhidos[escolhido2] = false;
 				//System.out.println(Arrays.toString(individuo1.cromossomo));
@@ -277,74 +285,16 @@ public class Main {
 		return false;
 	}
 	
-	private static ArrayList<Individuo> cruzamento(ArrayList<Individuo> populacao, double taxa){
-		
-		//System.out.println("\n=> Realizando cruzamento...\n");
-		
-		ArrayList<Individuo> filhos = new ArrayList<Individuo>();
-		
-		for(int i = 0; i < populacao.size() - 1; i++){
-			double r = Math.random();
-			if(r < taxa){
-				
-				int[] pai1 = populacao.get(i).getVetorCromossomo();
-				int[] pai2 = populacao.get(i+1).getVetorCromossomo();
-				
-				int[] filho1 = new int[tamCromossomo];
-
-				for(int f = 0; f < tamCromossomo; f++){
-					if(f < (tamCromossomo/2)){
-						filho1[f] = pai1[f];
-					}
-					else{
-						filho1[f] = pai2[f];
-					}
-					
-				}
-				
-				filhos.add(new Individuo(filho1));
-				//System.out.println(Arrays.toString(filho1));
-				//System.out.println("Tamanho Filho 1: " + filho1.length);
-				
-				int[] filho2 = new int[22];
-
-				for(int f = 0; f < tamCromossomo; f++){
-					if(f < 11){
-						filho2[f] = pai2[f];
-					}
-					else{
-						filho2[f] = pai1[f];
-					}
-					
-				}
-				
-				filhos.add(new Individuo(filho2));
-				//System.out.println(Arrays.toString(filho2));
-				//System.out.println("Tamanho Filho 2: " + filho1.length);
-				
-			}
-		}
-		
-		//System.out.println("\n* Quantidade de filhos gerados: " + filhos.size());
-		
-		return filhos;
-		
-	}
-	
 	//Divide o cromossomo no meio e troca as partes
-	private static ArrayList<Individuo> mutacaoSwapCompleto(ArrayList<Individuo> populacao, double taxa){
+	/*private static ArrayList<Individuo> mutacaoSwapCompleto(ArrayList<Individuo> populacao, double taxa){
 		
 		//System.out.println("\n=> Realizando mutação...\n");
 		
 		int contMutacao = 0;
-		boolean escolhidos[] = new boolean[populacao.size()];
-		for(int i= 0; i < populacao.size(); i++){
-			escolhidos[i] = false;
-		}
 		
 		for(int i = 0; i < populacao.size() - 1; i++){
 			double r = Math.random();
-			if(r < taxa && !escolhidos[i]){
+			if(r < taxa){
 				
 				Individuo individuo = populacao.get(i);
 				
@@ -366,10 +316,56 @@ public class Main {
 					cromossomo[j] = p1[aux];
 					aux++;
 				}
+				populacao.get(i).setCromossomo(cromossomo);
 				//System.out.println(Arrays.toString(cromossomo));
 				//System.exit(0);
 				
-				escolhidos[i] = true;
+				contMutacao++;
+				//System.out.println(Arrays.toString(populacao.get(i).cromossomo) + "\r\n");
+				
+			}
+		}
+		
+		//System.out.println("* Quantidade de indivíduos mutados: " + contMutacao);
+		
+		return populacao;
+		
+	}*/
+	
+	private static ArrayList<Individuo> mutacaoSwapCompleto(ArrayList<Individuo> populacao, double taxa){
+		
+		int contMutacao = 0;
+		Random rand = new Random();
+		for(int i = 0; i < populacao.size() - 1; i++){
+			double r = Math.random();
+			if(r < taxa){
+				
+				Individuo individuo = populacao.get(i);
+				
+				//System.out.println(Arrays.toString(individuo.cromossomo));
+				
+				//int a = (tamCromossomo/4);
+				
+				int a = rand.nextInt(tamCromossomo);
+				
+				int[] cromossomo = new int[tamCromossomo];
+				int[] p1 = Arrays.copyOfRange(individuo.cromossomo, 0, a);
+				//System.out.println("p1: " + Arrays.toString(p1) + " | tam: " + p1.length);
+				int[] p2 = Arrays.copyOfRange(individuo.cromossomo, a, tamCromossomo);
+				//System.out.println("p2: " + Arrays.toString(p2) + " | tam: " + p2.length);
+				
+				for(int j = 0; j < (tamCromossomo - a); j++){
+					cromossomo[j] = p2[j];
+				}
+				int aux = 0;
+				for(int j = (tamCromossomo - a); j < tamCromossomo; j++){
+					cromossomo[j] = p1[aux];
+					aux++;
+				}
+				populacao.get(i).setCromossomo(cromossomo);
+				//System.out.println(Arrays.toString(cromossomo));
+				//System.exit(0);
+				
 				contMutacao++;
 				//System.out.println(Arrays.toString(populacao.get(i).cromossomo) + "\r\n");
 				
@@ -387,16 +383,11 @@ public class Main {
 		//System.out.println("\n=> Realizando mutação...\n");
 		
 		int contMutacao = 0;
-		boolean escolhidos[] = new boolean[populacao.size()];
-		for(int i= 0; i < populacao.size(); i++){
-			escolhidos[i] = false;
-		}
 		
 		for(int i = 0; i < populacao.size() - 1; i++){
 			double r = Math.random();
-			if(r < taxa && !escolhidos[i]){
+			if(r < taxa){
 				Random rand = new Random();
-				
 				int gene1 = rand.nextInt(tamCromossomo);
 				int gene2 = rand.nextInt(tamCromossomo);
 				while(gene1 == gene2){
@@ -408,7 +399,7 @@ public class Main {
 				
 				populacao.get(i).alteraGene(gene1, cidade2);
 				populacao.get(i).alteraGene(gene2, cidade1);
-				escolhidos[i] = true;
+
 				
 				//System.out.println(Arrays.toString(populacao.get(i).cromossomo) + "\r\n");
 				contMutacao++;
@@ -511,7 +502,7 @@ public class Main {
 			  
 			  
 			  if(s.equals("NODE_COORD_SECTION")){
-				  for(int i = 0; i < numeroCidades - 1; i++){
+				  for(int i = 0; i < numeroCidades; i++){
 					  int numCidade = scan.nextInt();
 					  //System.out.println("numCidade: " + numCidade);
 					  double x = Double.parseDouble(scan.next());
